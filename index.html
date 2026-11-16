@@ -1,1 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLE 每日症狀紀錄 — Google Sheet 自動同步版</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --lavender: #E5E0EC;
+      --lavender-stripe: rgba(74, 62, 94, 0.035);
+      --cream: #F7F6F0;
+      --plum: #4A3E5E;
+      --plum-light: #6B5D82;
+      --plum-muted: #9B91AC;
+      --plum-tint: rgba(74, 62, 94, 0.08);
+      --border-hairline: rgba(74, 62, 94, 0.16);
+      --alert-red: #B83A3A;
+      --alert-bg: #FDF2F2;
+      --ok-green: #2F6F4E;
+    }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--cream);
+      color: var(--plum);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-bottom: 14px solid var(--plum);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .editorial-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      flex: 1;
+      min-height: calc(100vh - 14px);
+    }
+
+    .left-sidebar {
+      background-color: var(--lavender);
+      background-image: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 10px,
+        var(--lavender-stripe) 10px,
+        var(--lavender-stripe) 11px
+      );
+      border-right: 1px solid var(--border-hairline);
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand-header .brand-en {
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--plum);
+    }
+
+    .brand-header .brand-sub {
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--plum-light);
+      margin-top: 4px;
+    }
+
+    .hero-metric { margin: auto 0; padding: 20px 0; }
+    .hero-number-row { display: flex; align-items: baseline; gap: 6px; }
+    .hero-number {
+      font-size: 6.8rem;
+      font-weight: 900;
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      color: var(--plum);
+    }
+    .hero-unit { font-size: 1.15rem; font-weight: 700; color: var(--plum-light); }
+    .hero-caption { font-size: 1.05rem; font-weight: 700; margin-top: 14px; color: var(--plum); }
+    .hero-desc { font-size: 0.84rem; color: var(--plum-light); margin-top: 4px; }
+
+    .pain-slider-box { margin-top: 22px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(74, 62, 94, 0.2);
+      border-radius: 999px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--plum);
+      border: 3px solid var(--cream);
+      box-shadow: 0 2px 6px rgba(74, 62, 94, 0.3);
+      cursor: pointer;
+    }
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--plum-muted);
+      margin-top: 6px;
+    }
+
+    .editorial-bars { display: flex; gap: 10px; align-items: center; margin-top: 24px; }
+    .bar-active { width: 52px; height: 5px; background-color: var(--plum); }
+    .bar-inactive { width: 28px; height: 5px; background-color: rgba(74, 62, 94, 0.24); }
+    .sidebar-footer-note { font-size: 0.76rem; color: var(--plum-light); margin-top: 12px; }
+
+    .right-main { padding: 36px 48px 48px; max-width: 920px; width: 100%; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .date-pill-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .pill-badge {
+      background-color: var(--plum);
+      color: #FFFFFF;
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .pill-badge input[type="date"] {
+      background: transparent;
+      border: none;
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      color-scheme: dark;
+    }
+
+    .nav-tabs { display: flex; gap: 6px; background: var(--plum-tint); padding: 4px; border-radius: 999px; }
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--plum-light);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-tab.active { background: var(--plum); color: #FFFFFF; }
+
+    /* 右上角純狀態顯示與手動重新拉取按鈕 */
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      color: var(--plum);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sync-pill:hover { border-color: var(--plum); }
+
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--plum-muted); }
+    .sync-dot.connected { background-color: #2E8B57; box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.2); }
+    .sync-dot.syncing { background-color: #D97706; animation: pulse 1s infinite; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    .editorial-title-block { margin-top: 26px; }
+    .editorial-title { font-size: 2.15rem; font-weight: 900; line-height: 1.22; color: var(--plum); }
+    .editorial-subtitle { font-size: 0.92rem; font-weight: 500; color: var(--plum-light); margin-top: 10px; letter-spacing: 0.04em; }
+    .hairline-divider { border: none; border-top: 1px solid var(--border-hairline); margin: 22px 0; }
+
+    .red-flag-banner {
+      display: none;
+      background: var(--alert-bg);
+      border: 1px solid rgba(184, 58, 58, 0.3);
+      border-left: 4px solid var(--alert-red);
+      color: var(--alert-red);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .red-flag-banner.show { display: block; }
+
+    .section-block { margin-bottom: 26px; }
+    .section-label {
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--plum);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-hint { font-size: 0.76rem; font-weight: 500; color: var(--plum-muted); }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      color: var(--plum);
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      user-select: none;
+    }
+    .chip:hover { border-color: var(--plum); }
+    .chip.active { background: var(--plum); color: #FFFFFF; border-color: var(--plum); }
+    .chip.flag-chip.active { background: var(--alert-red); border-color: var(--alert-red); color: #FFFFFF; }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .metric-card label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--plum-light); margin-bottom: 8px; }
+    .metric-card select, .metric-card input[type="number"] {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--plum);
+      background: var(--cream);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .med-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .med-input {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.86rem;
+      color: var(--plum);
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      border-radius: 999px;
+      padding: 8px 16px;
+      outline: none;
+    }
+    .med-input:focus { border-color: var(--plum); }
+
+    .btn-outline-sm {
+      background: transparent;
+      border: 1.5px solid var(--plum);
+      color: var(--plum);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.16s;
+    }
+    .btn-outline-sm:hover { background: var(--plum); color: #FFFFFF; }
+
+    .med-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      color: var(--plum);
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 6px 10px 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.16s;
+    }
+    .med-chip.taken { background: var(--plum); color: #FFFFFF; border-color: var(--plum); }
+    .med-del-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(74, 62, 94, 0.12);
+      color: inherit;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .med-chip.taken .med-del-btn { background: rgba(255, 255, 255, 0.22); }
+    .med-del-btn:hover { background: var(--alert-red); color: #FFFFFF; }
+
+    .notes-textarea {
+      width: 100%;
+      min-height: 82px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: var(--plum);
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      border-radius: 12px;
+      padding: 12px 14px;
+      resize: vertical;
+      outline: none;
+    }
+    .notes-textarea:focus { border-color: var(--plum); }
+
+    .action-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-hairline);
+    }
+    .btn-primary {
+      background: var(--plum);
+      color: #FFFFFF;
+      border: none;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      padding: 12px 26px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .btn-primary:hover { opacity: 0.92; }
+    .status-toast { font-size: 0.82rem; font-weight: 700; color: var(--ok-green); }
+    .footer-brand-tag { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.14em; color: var(--plum-muted); text-transform: uppercase; }
+
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    .weekly-chart-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .chart-bars {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      align-items: end;
+      height: 170px;
+      padding-top: 24px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    .chart-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; cursor: pointer; }
+    .chart-val { font-size: 0.76rem; font-weight: 800; margin-bottom: 6px; color: var(--plum); }
+    .chart-bar { width: 100%; max-width: 34px; background: var(--lavender); border-radius: 6px 6px 0 0; min-height: 6px; transition: height 0.3s ease; }
+    .chart-col:hover .chart-bar, .chart-col.selected .chart-bar { background: var(--plum); }
+    .chart-labels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; text-align: center; margin-top: 8px; font-size: 0.76rem; font-weight: 700; color: var(--plum-light); }
+
+    .summary-box {
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      border-radius: 14px;
+      padding: 20px;
+      font-size: 0.88rem;
+      white-space: pre-wrap;
+      line-height: 1.75;
+      color: var(--plum);
+    }
+
+    @media (max-width: 860px) {
+      .editorial-layout { grid-template-columns: 1fr; }
+      .left-sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border-hairline); padding: 24px 22px; }
+      .hero-number { font-size: 4.8rem; }
+      .right-main { padding: 24px 20px 40px; }
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="editorial-layout">
+    <!-- 左側焦點欄 -->
+    <aside class="left-sidebar">
+      <div class="brand-header">
+        <div class="brand-en">SLE CARE LOG</div>
+        <div class="brand-sub">每日症狀與用藥誌</div>
+      </div>
+
+      <div class="hero-metric">
+        <div class="hero-number-row">
+          <div class="hero-number" id="heroPainNum">0</div>
+          <div class="hero-unit">/ 10 分</div>
+        </div>
+        <div class="hero-caption" id="heroPainLabel">無明顯疼痛</div>
+        <div class="hero-desc" id="heroPainDesc">關節與末梢微血管狀態平穩</div>
+
+        <div class="pain-slider-box">
+          <input type="range" id="painSlider" min="0" max="10" value="0" />
+          <div class="slider-ticks">
+            <span>0 無痛</span>
+            <span>3 輕微</span>
+            <span>6 中重度</span>
+            <span>10 劇痛</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="editorial-bars">
+          <div class="bar-active"></div>
+          <div class="bar-inactive"></div>
+        </div>
+        <div class="sidebar-footer-note" id="sidebarSyncNote">
+          Google Sheet 自動同步就緒
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右側編輯區 -->
+    <main class="right-main">
+      <div class="top-bar">
+        <div class="date-pill-group">
+          <div class="pill-badge">
+            <input type="date" id="recordDate" />
+          </div>
+          <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="daily">今日紀錄</button>
+            <button class="nav-tab" data-tab="weekly">本週趨勢</button>
+            <button class="nav-tab" data-tab="summary">回診摘要</button>
+          </div>
+        </div>
+
+        <!-- 點擊可手動立即重新從試算表拉取 -->
+        <button class="sync-pill" id="refreshSyncBtn" title="點擊立即從 Google Sheet 重新讀取最新資料">
+          <span class="sync-dot" id="syncStatusDot"></span>
+          <span id="syncStatusText">準備同步</span>
+        </button>
+      </div>
+
+      <div class="editorial-title-block">
+        <h1 class="editorial-title">紅斑性狼瘡與乾燥症<br>每日症狀追蹤</h1>
+        <p class="editorial-subtitle">依部位紀錄 ・ 自由增減用藥 ・ Google Sheet 自動雙向同步</p>
+      </div>
+
+      <hr class="hairline-divider" />
+
+      <div class="red-flag-banner" id="redFlagBanner">
+        ⚠️ 偵測到紅旗警訊症狀（高燒 ≥38°C、單側麻木無力、胸痛喘或泡沫尿水腫），請優先聯繫風濕免疫科或前往急診評估。
+      </div>
+
+      <!-- 分頁 1：今日紀錄 -->
+      <section class="view-panel active" id="panel-daily">
+        <div class="section-block">
+          <div class="section-label">
+            <span>01. 今日疼痛與微血管部位（可複選）</span>
+            <span class="section-hint">點選不適部位</span>
+          </div>
+          <div class="chip-group" id="locationChips">
+            <div class="chip" data-val="手指指腹紅腫痛">手指指腹紅腫痛</div>
+            <div class="chip" data-val="手指小關節">手指小關節</div>
+            <div class="chip" data-val="右手腕">右手腕</div>
+            <div class="chip" data-val="左手腕">左手腕</div>
+            <div class="chip" data-val="雙膝關節">雙膝關節</div>
+            <div class="chip" data-val="雙肘/肩膀">雙肘/肩膀</div>
+            <div class="chip" data-val="腳踝/足底">腳踝/足底</div>
+            <div class="chip" data-val="全身肌肉痠痛">全身肌肉痠痛</div>
+            <div class="chip" data-val="臉頰/口腔腫痛">臉頰/口腔腫痛</div>
+            <div class="chip" data-val="喉嚨吞嚥痛">喉嚨吞嚥痛</div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-label">
+            <span>02. 晨僵、疲憊與乾燥症指標</span>
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <label for="stiffnessSelect">晨間僵硬時間</label>
+              <select id="stiffnessSelect">
+                <option value="無晨僵">無晨僵</option>
+                <option value="< 15 分鐘">&lt; 15 分鐘</option>
+                <option value="15 - 30 分鐘">15 - 30 分鐘</option>
+                <option value="30 - 60 分鐘">30 - 60 分鐘</option>
+                <option value="> 1 小時">&gt; 1 小時</option>
+              </select>
+            </div>
+            <div class="metric-card">
+              <label for="fatigueSelect">慢性疲憊程度（1–5）</label>
+              <select id="fatigueSelect">
+                <option value="1">1 級 — 精神良好</option>
+                <option value="2">2 級 — 略感疲倦</option>
+                <option value="3">3 級 — 午後需臥床休息</option>
+                <option value="4">4 級 — 明顯虛弱無力</option>
+                <option value="5">5 級 — 斷電式極度疲憊</option>
+              </select>
+            </div>
+            <div class="metric-card">
+              <label for="tempInput">今日最高體溫（°C）</label>
+              <input type="number" id="tempInput" step="0.1" min="35" max="42" placeholder="例如 36.8" />
+            </div>
+          </div>
+
+          <div class="chip-group" id="drynessChips" style="margin-top: 12px;">
+            <div class="chip" data-val="輕微眼乾">輕微眼乾</div>
+            <div class="chip" data-val="嚴重眼乾/畏光">嚴重眼乾/畏光</div>
+            <div class="chip" data-val="口乾需配水">口乾需配水</div>
+            <div class="chip" data-val="夜間口乾醒來">夜間口乾醒來</div>
+            <div class="chip" data-val="腮腺/臉頰腫脹">腮腺/臉頰腫脹</div>
+            <div class="chip" data-val="牙齦出血/嘴破">牙齦出血/嘴破</div>
+            <div class="chip" data-val="皮膚新瘀青">皮膚新瘀青</div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-label">
+            <span>03. 紅旗警訊快篩（若有請勾選）</span>
+          </div>
+          <div class="chip-group" id="flagChips">
+            <div class="chip flag-chip" data-val="發燒 ≥38°C">發燒 ≥38°C</div>
+            <div class="chip flag-chip" data-val="單側手腳麻木無力">單側手腳麻木無力</div>
+            <div class="chip flag-chip" data-val="劇烈頭痛">劇烈頭痛</div>
+            <div class="chip flag-chip" data-val="胸痛/呼吸喘">胸痛/呼吸喘</div>
+            <div class="chip flag-chip" data-val="細密泡沫尿/小腿水腫">細密泡沫尿/小腿水腫</div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-label">
+            <span>04. 今日用藥（點擊標記已服藥，可自由新增或刪減）</span>
+            <span class="section-hint">清單自動記憶並同步</span>
+          </div>
+          <div class="med-add-row">
+            <input type="text" class="med-input" id="newMedInput" placeholder="輸入藥名與劑量（例如：Prednisolone 2顆、奎寧 1顆、MTX 3顆）" />
+            <button type="button" class="btn-outline-sm" id="addMedBtn">+ 新增藥物</button>
+          </div>
+          <div class="chip-group" id="medListContainer"></div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-label">
+            <span>05. 飲食、天氣與身體變化隨筆</span>
+          </div>
+          <textarea class="notes-textarea" id="notesInput" placeholder="記錄今日觀察（例如：避開熱水洗碗、右臉頰消腫、昨晚睡得較安穩...）"></textarea>
+        </div>
+
+        <div class="action-footer">
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <button type="button" class="btn-primary" id="saveRecordBtn">儲存今日紀錄並同步</button>
+            <span class="status-toast" id="saveToast"></span>
+          </div>
+          <div class="footer-brand-tag">SLE &amp; SJÖGREN'S TRACKER</div>
+        </div>
+      </section>
+
+      <!-- 分頁 2：本週趨勢 -->
+      <section class="view-panel" id="panel-weekly">
+        <div class="weekly-chart-card">
+          <div class="section-label">
+            <span>近 7 日疼痛指數趨勢（點擊長條可檢視該日紀錄）</span>
+            <span class="section-hint" id="weeklyAvgLabel">7 日平均：0.0 分</span>
+          </div>
+          <div class="chart-bars" id="weeklyBars"></div>
+          <div class="chart-labels" id="weeklyLabels"></div>
+        </div>
+
+        <div class="metric-card">
+          <label>本週紀錄小結</label>
+          <div id="weeklyStatsText" style="font-size: 0.88rem; color: var(--plum); line-height: 1.7;"></div>
+        </div>
+      </section>
+
+      <!-- 分頁 3：回診 30 秒摘要 -->
+      <section class="view-panel" id="panel-summary">
+        <div class="section-label">
+          <span>門診 30 秒醫師速讀摘要（近 7 日彙整）</span>
+          <button type="button" class="btn-outline-sm" id="copySummaryBtn">一鍵複製摘要</button>
+        </div>
+        <div class="summary-box" id="doctorSummaryBox"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 👇【只要改這裡】把您的 Google Apps Script 網頁應用程式網址貼在引號內即可！
+    //    之後在任何手機或電腦開啟此網頁，都會自動讀取並寫入您的 Google Sheet
+    // =========================================================================
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzTv--1GenbsaYpzyOT54h-X0OSBnGyk7F3Vhd7_KUVJYgRR10YnHpfrvQ-odWvDlle/exec';
+
+    const STORAGE_KEY_RECORDS = 'sle_editorial_records_v1';
+    const STORAGE_KEY_MEDS = 'sle_editorial_med_catalog_v1';
+
+    const DEFAULT_MEDS = [
+      'Prednisolone 2顆',
+      '奎寧 Plaquenil 1顆',
+      'Celebrex 希樂葆',
+      'MTX 3顆 (每週)',
+      '葉酸 Folic acid (每週)',
+      'Broen-c 撲炎喜'
+    ];
+
+    let allRecords = JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS) || '{}');
+    let medCatalog = JSON.parse(localStorage.getItem(STORAGE_KEY_MEDS) || 'null') || [...DEFAULT_MEDS];
+
+    const dateInput = document.getElementById('recordDate');
+    const painSlider = document.getElementById('painSlider');
+    const heroPainNum = document.getElementById('heroPainNum');
+    const heroPainLabel = document.getElementById('heroPainLabel');
+    const heroPainDesc = document.getElementById('heroPainDesc');
+    const stiffnessSelect = document.getElementById('stiffnessSelect');
+    const fatigueSelect = document.getElementById('fatigueSelect');
+    const tempInput = document.getElementById('tempInput');
+    const notesInput = document.getElementById('notesInput');
+    const redFlagBanner = document.getElementById('redFlagBanner');
+    const medListContainer = document.getElementById('medListContainer');
+    const newMedInput = document.getElementById('newMedInput');
+
+    function isUrlConfigured() {
+      return GAS_WEB_APP_URL && GAS_WEB_APP_URL.startsWith('https://script.google.com/') && !GAS_WEB_APP_URL.includes('貼上您的部署代碼');
+    }
+
+    function getTodayStr() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now - offset).toISOString().slice(0, 10);
+    }
+
+    dateInput.value = getTodayStr();
+
+    function updatePainDisplay(val) {
+      const n = Number(val);
+      heroPainNum.textContent = n;
+      if (n === 0) {
+        heroPainLabel.textContent = '無明顯疼痛';
+        heroPainDesc.textContent = '關節與末梢微血管狀態平穩';
+      } else if (n <= 3) {
+        heroPainLabel.textContent = '輕度微痛';
+        heroPainDesc.textContent = '可正常活動，留意關節保暖與防曬';
+      } else if (n <= 6) {
+        heroPainLabel.textContent = '中度疼痛干擾';
+        heroPainDesc.textContent = '影響抓握或步行，建議減少負重多休息';
+      } else {
+        heroPainLabel.textContent = '重度劇痛警示';
+        heroPainDesc.textContent = '嚴重影響生活自理，請記錄部位並評估提早回診';
+      }
+    }
+
+    painSlider.addEventListener('input', (e) => updatePainDisplay(e.target.value));
+
+    function evaluateRedFlags() {
+      const activeFlags = [...document.querySelectorAll('#flagChips .chip.active')];
+      const tempVal = parseFloat(tempInput.value);
+      if (activeFlags.length > 0 || (!isNaN(tempVal) && tempVal >= 38.0)) {
+        redFlagBanner.classList.add('show');
+      } else {
+        redFlagBanner.classList.remove('show');
+      }
+    }
+
+    tempInput.addEventListener('input', evaluateRedFlags);
+
+    document.querySelectorAll('#locationChips .chip, #drynessChips .chip, #flagChips .chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.classList.toggle('active');
+        evaluateRedFlags();
+      });
+    });
+
+    function renderMedChips(takenMeds = []) {
+      medListContainer.innerHTML = '';
+      medCatalog.forEach((medName, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'med-chip' + (takenMeds.includes(medName) ? ' taken' : '');
+        chip.dataset.med = medName;
+
+        const labelSpan = document.createElement('span');
+        labelSpan.textContent = (takenMeds.includes(medName) ? '✓ ' : '') + medName;
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'med-del-btn';
+        delBtn.title = '刪除此藥物';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          medCatalog.splice(idx, 1);
+          localStorage.setItem(STORAGE_KEY_MEDS, JSON.stringify(medCatalog));
+          const currentTaken = getSelectedMeds().filter(m => m !== medName);
+          renderMedChips(currentTaken);
+        });
+
+        chip.addEventListener('click', () => {
+          const nowTaken = !chip.classList.contains('taken');
+          chip.classList.toggle('taken');
+          labelSpan.textContent = (nowTaken ? '✓ ' : '') + medName;
+        });
+
+        chip.appendChild(labelSpan);
+        chip.appendChild(delBtn);
+        medListContainer.appendChild(chip);
+      });
+    }
+
+    function getSelectedMeds() {
+      return [...document.querySelectorAll('#medListContainer .med-chip.taken')].map(el => el.dataset.med);
+    }
+
+    function handleAddMed() {
+      const name = newMedInput.value.trim();
+      if (!name) return;
+      if (!medCatalog.includes(name)) {
+        medCatalog.push(name);
+        localStorage.setItem(STORAGE_KEY_MEDS, JSON.stringify(medCatalog));
+      }
+      const currentTaken = getSelectedMeds();
+      if (!currentTaken.includes(name)) currentTaken.push(name);
+      renderMedChips(currentTaken);
+      newMedInput.value = '';
+    }
+
+    document.getElementById('addMedBtn').addEventListener('click', handleAddMed);
+    newMedInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddMed();
+      }
+    });
+
+    function loadRecordForDate(dateStr) {
+      const rec = allRecords[dateStr] || {
+        date: dateStr,
+        pain: 0,
+        locations: [],
+        stiffness: '無晨僵',
+        fatigue: 1,
+        temp: '',
+        dryness: [],
+        flags: [],
+        meds: [],
+        notes: ''
+      };
+
+      painSlider.value = rec.pain || 0;
+      updatePainDisplay(rec.pain || 0);
+      stiffnessSelect.value = rec.stiffness || '無晨僵';
+      fatigueSelect.value = String(rec.fatigue || 1);
+      tempInput.value = rec.temp || '';
+      notesInput.value = rec.notes || '';
+
+      document.querySelectorAll('#locationChips .chip').forEach(c => {
+        c.classList.toggle('active', (rec.locations || []).includes(c.dataset.val));
+      });
+      document.querySelectorAll('#drynessChips .chip').forEach(c => {
+        c.classList.toggle('active', (rec.dryness || []).includes(c.dataset.val));
+      });
+      document.querySelectorAll('#flagChips .chip').forEach(c => {
+        c.classList.toggle('active', (rec.flags || []).includes(c.dataset.val));
+      });
+
+      (rec.meds || []).forEach(m => {
+        if (!medCatalog.includes(m)) medCatalog.push(m);
+      });
+      renderMedChips(rec.meds || []);
+      evaluateRedFlags();
+    }
+
+    dateInput.addEventListener('change', () => {
+      loadRecordForDate(dateInput.value);
+    });
+
+    function collectCurrentFormRecord() {
+      const dateStr = dateInput.value || getTodayStr();
+      return {
+        date: dateStr,
+        pain: Number(painSlider.value),
+        locations: [...document.querySelectorAll('#locationChips .chip.active')].map(c => c.dataset.val),
+        stiffness: stiffnessSelect.value,
+        fatigue: Number(fatigueSelect.value),
+        temp: tempInput.value.trim(),
+        dryness: [...document.querySelectorAll('#drynessChips .chip.active')].map(c => c.dataset.val),
+        flags: [...document.querySelectorAll('#flagChips .chip.active')].map(c => c.dataset.val),
+        meds: getSelectedMeds(),
+        notes: notesInput.value.trim()
+      };
+    }
+
+    // === Google Sheet 自動同步狀態與讀寫 ===
+    function updateSyncIndicator(state, text) {
+      const dot = document.getElementById('syncStatusDot');
+      const label = document.getElementById('syncStatusText');
+      const sideNote = document.getElementById('sidebarSyncNote');
+      dot.className = 'sync-dot';
+      if (state === 'connected') {
+        dot.classList.add('connected');
+        label.textContent = text || 'Google Sheet 已同步';
+        sideNote.textContent = '已連線 Google Sheet ・ 跨裝置自動同步';
+      } else if (state === 'syncing') {
+        dot.classList.add('syncing');
+        label.textContent = text || '同步中...';
+      } else {
+        label.textContent = text || '尚未填入 GAS 網址';
+        sideNote.textContent = '請在程式碼上方填入 GAS_WEB_APP_URL';
+      }
+    }
+
+    async function syncRecordToGoogleSheet(recordData) {
+      if (!isUrlConfigured()) return false;
+      updateSyncIndicator('syncing', '寫入試算表中...');
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(recordData)
+        });
+        const result = await response.json();
+        if (result.status === 'saved') {
+          const nowTime = new Date().toTimeString().slice(0, 5);
+          updateSyncIndicator('connected', `已同步 (${nowTime})`);
+          return true;
+        }
+      } catch (err) {
+        console.error('Google Sheet 寫入失敗:', err);
+        updateSyncIndicator('disconnected', '同步失敗・已存本機');
+      }
+      return false;
+    }
+
+    async function fetchRecordsFromGoogleSheet() {
+      if (!isUrlConfigured()) {
+        updateSyncIndicator('disconnected', '尚未填入 GAS 網址');
+        return null;
+      }
+      updateSyncIndicator('syncing', '讀取試算表中...');
+      try {
+        const response = await fetch(GAS_WEB_APP_URL);
+        const result = await response.json();
+        if (result.status === 'ok' && result.data) {
+          allRecords = { ...allRecords, ...result.data };
+          localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allRecords));
+          loadRecordForDate(dateInput.value);
+          renderWeeklyView();
+          renderDoctorSummary();
+          const nowTime = new Date().toTimeString().slice(0, 5);
+          updateSyncIndicator('connected', `已同步 (${nowTime})`);
+          return result.data;
+        }
+      } catch (err) {
+        console.error('Google Sheet 讀取失敗:', err);
+        updateSyncIndicator('disconnected', '連線異常・點此重試');
+      }
+      return null;
+    }
+
+    document.getElementById('refreshSyncBtn').addEventListener('click', fetchRecordsFromGoogleSheet);
+
+    document.getElementById('saveRecordBtn').addEventListener('click', async () => {
+      const rec = collectCurrentFormRecord();
+      allRecords[rec.date] = rec;
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allRecords));
+
+      const toast = document.getElementById('saveToast');
+      if (isUrlConfigured()) {
+        toast.textContent = '⏳ 正在寫入 Google Sheet...';
+        const ok = await syncRecordToGoogleSheet(rec);
+        toast.textContent = ok
+          ? '✓ 已儲存並同步至 Google Sheet！'
+          : '✓ 已存本機（Google Sheet 寫入失敗，請檢查部署權限）';
+      } else {
+        toast.textContent = '✓ 已儲存於本機（尚未在程式碼填入 GAS 網址）';
+      }
+
+      renderWeeklyView();
+      renderDoctorSummary();
+      setTimeout(() => { toast.textContent = ''; }, 4000);
+    });
+
+    // === 分頁切換、本週趨勢與回診摘要 ===
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        if (tab.dataset.tab === 'weekly') renderWeeklyView();
+        if (tab.dataset.tab === 'summary') renderDoctorSummary();
+      });
+    });
+
+    function getLast7Days() {
+      const days = [];
+      const base = new Date(dateInput.value || getTodayStr());
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(base);
+        d.setDate(base.getDate() - i);
+        days.push(d.toISOString().slice(0, 10));
+      }
+      return days;
+    }
+
+    function renderWeeklyView() {
+      const days = getLast7Days();
+      const barsEl = document.getElementById('weeklyBars');
+      const labelsEl = document.getElementById('weeklyLabels');
+      barsEl.innerHTML = '';
+      labelsEl.innerHTML = '';
+
+      let sum = 0, count = 0;
+      const locFreq = {};
+
+      days.forEach(dStr => {
+        const rec = allRecords[dStr];
+        const pain = rec ? Number(rec.pain) : 0;
+        if (rec) {
+          sum += pain;
+          count++;
+          (rec.locations || []).forEach(l => { locFreq[l] = (locFreq[l] || 0) + 1; });
+        }
+
+        const col = document.createElement('div');
+        col.className = 'chart-col' + (dStr === dateInput.value ? ' selected' : '');
+        col.title = `${dStr}：疼痛 ${pain} 分`;
+        col.innerHTML = `
+          <div class="chart-val">${rec ? pain : '-'}</div>
+          <div class="chart-bar" style="height: ${rec ? Math.max(8, pain * 13) : 6}px;"></div>
+        `;
+        col.addEventListener('click', () => {
+          dateInput.value = dStr;
+          loadRecordForDate(dStr);
+          document.querySelector('.nav-tab[data-tab="daily"]').click();
+        });
+        barsEl.appendChild(col);
+
+        const lbl = document.createElement('div');
+        lbl.textContent = dStr.slice(5).replace('-', '/');
+        labelsEl.appendChild(lbl);
+      });
+
+      const avg = count > 0 ? (sum / count).toFixed(1) : '0.0';
+      document.getElementById('weeklyAvgLabel').textContent = `近 7 日已紀錄 ${count} 天・平均 ${avg} 分`;
+
+      const topLocs = Object.entries(locFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([k, v]) => `${k} (${v}天)`)
+        .join('、') || '尚無部位紀錄';
+
+      document.getElementById('weeklyStatsText').innerHTML = `
+        • <strong>主要好發疼痛部位：</strong>${topLocs}<br>
+        • <strong>平均疼痛指數：</strong>${avg} / 10 分（共 ${count} 筆有效紀錄）
+      `;
+    }
+
+    function renderDoctorSummary() {
+      const days = getLast7Days();
+      const validRecs = days.map(d => allRecords[d]).filter(Boolean);
+      if (validRecs.length === 0) {
+        document.getElementById('doctorSummaryBox').textContent = '近 7 日尚無儲存紀錄，請先在「今日紀錄」填寫並儲存資料。';
+        return;
+      }
+
+      const avgPain = (validRecs.reduce((acc, r) => acc + Number(r.pain || 0), 0) / validRecs.length).toFixed(1);
+      const maxRec = validRecs.reduce((prev, curr) => (Number(curr.pain) > Number(prev.pain) ? curr : prev));
+      const allLocs = [...new Set(validRecs.flatMap(r => r.locations || []))];
+      const allDry = [...new Set(validRecs.flatMap(r => r.dryness || []))];
+      const allFlags = [...new Set(validRecs.flatMap(r => r.flags || []))];
+      const recentMeds = validRecs[validRecs.length - 1].meds || [];
+
+      const lines = [
+        `【SLE / 乾燥症近 7 日門診速讀摘要】(${days[0]} ~ ${days[days.length - 1]})`,
+        `1. 關節與微血管疼痛：平均 ${avgPain} / 10 分，最高 ${maxRec.pain} 分（${maxRec.date}）。`,
+        `   主要疼痛部位：${allLocs.length ? allLocs.join('、') : '無明顯局部痛點'}。`,
+        `2. 晨僵與慢性疲憊：最近一日晨僵「${validRecs[validRecs.length - 1].stiffness}」，疲憊度 ${validRecs[validRecs.length - 1].fatigue} / 5 級。`,
+        `3. 乾燥症與黏膜表現：${allDry.length ? allDry.join('、') : '無新增眼口乾燥或黏膜異常'}。`,
+        `4. 警訊症狀篩檢：${allFlags.length ? '⚠️ 曾出現 ' + allFlags.join('、') : '無發燒 ≥38°C、單側麻木或泡沫尿水腫'}。`,
+        `5. 目前實際執行用藥：${recentMeds.length ? recentMeds.join('、') : '未勾選'}。`
+      ];
+
+      const notesList = validRecs.filter(r => r.notes).map(r => `   - ${r.date.slice(5)}：${r.notes}`);
+      if (notesList.length) {
+        lines.push(`6. 每日變化隨筆：\n${notesList.join('\n')}`);
+      }
+
+      document.getElementById('doctorSummaryBox').textContent = lines.join('\n');
+    }
+
+    document.getElementById('copySummaryBtn').addEventListener('click', () => {
+      const text = document.getElementById('doctorSummaryBox').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copySummaryBtn');
+        btn.textContent = '✓ 已複製到剪貼簿';
+        setTimeout(() => { btn.textContent = '一鍵複製摘要'; }, 2500);
+      });
+    });
+
+    // === 開啟網頁自動執行 ===
+    loadRecordForDate(dateInput.value);
+    fetchRecordsFromGoogleSheet();
+  </script>
+</body>
+</html>
