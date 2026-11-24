@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SLE 每日症狀紀錄 — Google Sheet 自動同步版</title>
+  <title>SLE 每日症狀紀錄 — 自由編輯與 Google Sheet 同步版</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -165,7 +165,6 @@
     }
     .nav-tab.active { background: var(--plum); color: #FFFFFF; }
 
-    /* 右上角純狀態顯示與手動重新拉取按鈕 */
     .sync-pill {
       display: inline-flex;
       align-items: center;
@@ -217,6 +216,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
     }
     .section-hint { font-size: 0.76rem; font-weight: 500; color: var(--plum-muted); }
 
@@ -235,7 +236,83 @@
     }
     .chip:hover { border-color: var(--plum); }
     .chip.active { background: var(--plum); color: #FFFFFF; border-color: var(--plum); }
-    .chip.flag-chip.active { background: var(--alert-red); border-color: var(--alert-red); color: #FFFFFF; }
+
+    /* 可自由新增與刪除的膠囊通用樣式 */
+    .editable-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .editable-input {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.86rem;
+      color: var(--plum);
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      border-radius: 999px;
+      padding: 8px 16px;
+      outline: none;
+    }
+    .editable-input:focus { border-color: var(--plum); }
+
+    .btn-outline-sm {
+      background: transparent;
+      border: 1.5px solid var(--plum);
+      color: var(--plum);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.16s;
+    }
+    .btn-outline-sm:hover { background: var(--plum); color: #FFFFFF; }
+
+    .editable-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-hairline);
+      color: var(--plum);
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 6px 10px 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.16s;
+      user-select: none;
+    }
+    .editable-chip:hover { border-color: var(--plum); }
+    .editable-chip.active { background: var(--plum); color: #FFFFFF; border-color: var(--plum); }
+
+    /* 紅旗警訊專屬紅色選取狀態 */
+    .editable-chip.flag-variant { border-color: rgba(184, 58, 58, 0.35); }
+    .editable-chip.flag-variant:hover { border-color: var(--alert-red); }
+    .editable-chip.flag-variant.active {
+      background: var(--alert-red);
+      border-color: var(--alert-red);
+      color: #FFFFFF;
+    }
+
+    .chip-del-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(74, 62, 94, 0.12);
+      color: inherit;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .editable-chip.active .chip-del-btn { background: rgba(255, 255, 255, 0.22); }
+    .chip-del-btn:hover { background: var(--alert-red); color: #FFFFFF; }
+    .editable-chip.flag-variant.active .chip-del-btn:hover {
+      background: #FFFFFF;
+      color: var(--alert-red);
+    }
 
     .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
     .metric-card {
@@ -257,65 +334,6 @@
       padding: 8px 10px;
       outline: none;
     }
-
-    .med-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
-    .med-input {
-      flex: 1;
-      font-family: inherit;
-      font-size: 0.86rem;
-      color: var(--plum);
-      background: #FFFFFF;
-      border: 1px solid var(--border-hairline);
-      border-radius: 999px;
-      padding: 8px 16px;
-      outline: none;
-    }
-    .med-input:focus { border-color: var(--plum); }
-
-    .btn-outline-sm {
-      background: transparent;
-      border: 1.5px solid var(--plum);
-      color: var(--plum);
-      font-size: 0.82rem;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 999px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.16s;
-    }
-    .btn-outline-sm:hover { background: var(--plum); color: #FFFFFF; }
-
-    .med-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #FFFFFF;
-      border: 1px solid var(--border-hairline);
-      color: var(--plum);
-      font-size: 0.84rem;
-      font-weight: 600;
-      padding: 6px 10px 6px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.16s;
-    }
-    .med-chip.taken { background: var(--plum); color: #FFFFFF; border-color: var(--plum); }
-    .med-del-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(74, 62, 94, 0.12);
-      color: inherit;
-      font-size: 0.7rem;
-      cursor: pointer;
-    }
-    .med-chip.taken .med-del-btn { background: rgba(255, 255, 255, 0.22); }
-    .med-del-btn:hover { background: var(--alert-red); color: #FFFFFF; }
 
     .notes-textarea {
       width: 100%;
@@ -456,7 +474,6 @@
           </div>
         </div>
 
-        <!-- 點擊可手動立即重新從試算表拉取 -->
         <button class="sync-pill" id="refreshSyncBtn" title="點擊立即從 Google Sheet 重新讀取最新資料">
           <span class="sync-dot" id="syncStatusDot"></span>
           <span id="syncStatusText">準備同步</span>
@@ -465,36 +482,31 @@
 
       <div class="editorial-title-block">
         <h1 class="editorial-title">紅斑性狼瘡與乾燥症<br>每日症狀追蹤</h1>
-        <p class="editorial-subtitle">依部位紀錄 ・ 自由增減用藥 ・ Google Sheet 自動雙向同步</p>
+        <p class="editorial-subtitle">自訂部位與警訊 ・ 自由增減用藥 ・ Google Sheet 自動雙向同步</p>
       </div>
 
       <hr class="hairline-divider" />
 
       <div class="red-flag-banner" id="redFlagBanner">
-        ⚠️ 偵測到紅旗警訊症狀（高燒 ≥38°C、單側麻木無力、胸痛喘或泡沫尿水腫），請優先聯繫風濕免疫科或前往急診評估。
+        ⚠️ 偵測到紅旗警訊症狀或體溫 ≥38°C，請優先聯繫風濕免疫科或前往急診評估。
       </div>
 
       <!-- 分頁 1：今日紀錄 -->
       <section class="view-panel active" id="panel-daily">
+        <!-- 01. 疼痛部位（可自由新增/刪減） -->
         <div class="section-block">
           <div class="section-label">
-            <span>01. 今日疼痛與微血管部位（可複選）</span>
-            <span class="section-hint">點選不適部位</span>
+            <span>01. 今日疼痛與微血管部位（可複選，可自由新增或刪減）</span>
+            <span class="section-hint">點選標記・按 ✕ 刪除</span>
           </div>
-          <div class="chip-group" id="locationChips">
-            <div class="chip" data-val="手指指腹紅腫痛">手指指腹紅腫痛</div>
-            <div class="chip" data-val="手指小關節">手指小關節</div>
-            <div class="chip" data-val="右手腕">右手腕</div>
-            <div class="chip" data-val="左手腕">左手腕</div>
-            <div class="chip" data-val="雙膝關節">雙膝關節</div>
-            <div class="chip" data-val="雙肘/肩膀">雙肘/肩膀</div>
-            <div class="chip" data-val="腳踝/足底">腳踝/足底</div>
-            <div class="chip" data-val="全身肌肉痠痛">全身肌肉痠痛</div>
-            <div class="chip" data-val="臉頰/口腔腫痛">臉頰/口腔腫痛</div>
-            <div class="chip" data-val="喉嚨吞嚥痛">喉嚨吞嚥痛</div>
+          <div class="editable-add-row">
+            <input type="text" class="editable-input" id="newLocationInput" placeholder="新增自訂部位（例如：左髖關節、尾椎深處、小腿前側）" />
+            <button type="button" class="btn-outline-sm" id="addLocationBtn">+ 新增部位</button>
           </div>
+          <div class="chip-group" id="locationChips"></div>
         </div>
 
+        <!-- 02. 晨僵、疲憊與乾燥症指標 -->
         <div class="section-block">
           <div class="section-label">
             <span>02. 晨僵、疲憊與乾燥症指標</span>
@@ -537,31 +549,33 @@
           </div>
         </div>
 
+        <!-- 03. 紅旗警訊快篩（可自由新增/刪減） -->
         <div class="section-block">
           <div class="section-label">
-            <span>03. 紅旗警訊快篩（若有請勾選）</span>
+            <span>03. 紅旗警訊快篩（若有請勾選，可自由新增或刪減）</span>
+            <span class="section-hint">勾選即亮起警示</span>
           </div>
-          <div class="chip-group" id="flagChips">
-            <div class="chip flag-chip" data-val="發燒 ≥38°C">發燒 ≥38°C</div>
-            <div class="chip flag-chip" data-val="單側手腳麻木無力">單側手腳麻木無力</div>
-            <div class="chip flag-chip" data-val="劇烈頭痛">劇烈頭痛</div>
-            <div class="chip flag-chip" data-val="胸痛/呼吸喘">胸痛/呼吸喘</div>
-            <div class="chip flag-chip" data-val="細密泡沫尿/小腿水腫">細密泡沫尿/小腿水腫</div>
+          <div class="editable-add-row">
+            <input type="text" class="editable-input" id="newFlagInput" placeholder="新增警訊項目（例如：起身昏眩反胃、單眼視野黑影、吞嚥困難）" />
+            <button type="button" class="btn-outline-sm" id="addFlagBtn">+ 新增警訊</button>
           </div>
+          <div class="chip-group" id="flagChips"></div>
         </div>
 
+        <!-- 04. 今日用藥（可自由新增/刪減） -->
         <div class="section-block">
           <div class="section-label">
             <span>04. 今日用藥（點擊標記已服藥，可自由新增或刪減）</span>
             <span class="section-hint">清單自動記憶並同步</span>
           </div>
-          <div class="med-add-row">
-            <input type="text" class="med-input" id="newMedInput" placeholder="輸入藥名與劑量（例如：Prednisolone 2顆、奎寧 1顆、MTX 3顆）" />
+          <div class="editable-add-row">
+            <input type="text" class="editable-input" id="newMedInput" placeholder="輸入藥名與劑量（例如：Prednisolone 2顆、奎寧 1顆、MTX 3顆）" />
             <button type="button" class="btn-outline-sm" id="addMedBtn">+ 新增藥物</button>
           </div>
           <div class="chip-group" id="medListContainer"></div>
         </div>
 
+        <!-- 05. 隨筆 -->
         <div class="section-block">
           <div class="section-label">
             <span>05. 飲食、天氣與身體變化隨筆</span>
@@ -611,10 +625,33 @@
     // 👇【只要改這裡】把您的 Google Apps Script 網頁應用程式網址貼在引號內即可！
     //    之後在任何手機或電腦開啟此網頁，都會自動讀取並寫入您的 Google Sheet
     // =========================================================================
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzTv--1GenbsaYpzyOT54h-X0OSBnGyk7F3Vhd7_KUVJYgRR10YnHpfrvQ-odWvDlle/exec';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/貼上您的部署代碼/exec';
 
-    const STORAGE_KEY_RECORDS = 'sle_editorial_records_v1';
-    const STORAGE_KEY_MEDS = 'sle_editorial_med_catalog_v1';
+    const STORAGE_KEY_RECORDS = 'sle_editorial_records_v2';
+    const STORAGE_KEY_LOCATIONS = 'sle_editorial_loc_catalog_v2';
+    const STORAGE_KEY_FLAGS = 'sle_editorial_flag_catalog_v2';
+    const STORAGE_KEY_MEDS = 'sle_editorial_med_catalog_v2';
+
+    const DEFAULT_LOCATIONS = [
+      '手指指腹紅腫痛',
+      '手指小關節',
+      '右手腕',
+      '左手腕',
+      '雙膝關節',
+      '雙肘/肩膀',
+      '腳踝/足底',
+      '全身肌肉痠痛',
+      '臉頰/口腔腫痛',
+      '喉嚨吞嚥痛'
+    ];
+
+    const DEFAULT_FLAGS = [
+      '發燒 ≥38°C',
+      '單側手腳麻木無力',
+      '劇烈頭痛',
+      '胸痛/呼吸喘',
+      '細密泡沫尿/小腿水腫'
+    ];
 
     const DEFAULT_MEDS = [
       'Prednisolone 2顆',
@@ -626,6 +663,8 @@
     ];
 
     let allRecords = JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS) || '{}');
+    let locationCatalog = JSON.parse(localStorage.getItem(STORAGE_KEY_LOCATIONS) || 'null') || [...DEFAULT_LOCATIONS];
+    let flagCatalog = JSON.parse(localStorage.getItem(STORAGE_KEY_FLAGS) || 'null') || [...DEFAULT_FLAGS];
     let medCatalog = JSON.parse(localStorage.getItem(STORAGE_KEY_MEDS) || 'null') || [...DEFAULT_MEDS];
 
     const dateInput = document.getElementById('recordDate');
@@ -638,11 +677,9 @@
     const tempInput = document.getElementById('tempInput');
     const notesInput = document.getElementById('notesInput');
     const redFlagBanner = document.getElementById('redFlagBanner');
-    const medListContainer = document.getElementById('medListContainer');
-    const newMedInput = document.getElementById('newMedInput');
 
     function isUrlConfigured() {
-      return GAS_WEB_APP_URL && GAS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/AKfycbzTv--1GenbsaYpzyOT54h-X0OSBnGyk7F3Vhd7_KUVJYgRR10YnHpfrvQ-odWvDlle/exec') && !GAS_WEB_APP_URL.includes('貼上您的部署代碼');
+      return GAS_WEB_APP_URL && GAS_WEB_APP_URL.startsWith('https://script.google.com/') && !GAS_WEB_APP_URL.includes('貼上您的部署代碼');
     }
 
     function getTodayStr() {
@@ -674,7 +711,7 @@
     painSlider.addEventListener('input', (e) => updatePainDisplay(e.target.value));
 
     function evaluateRedFlags() {
-      const activeFlags = [...document.querySelectorAll('#flagChips .chip.active')];
+      const activeFlags = [...document.querySelectorAll('#flagChips .editable-chip.active')];
       const tempVal = parseFloat(tempInput.value);
       if (activeFlags.length > 0 || (!isNaN(tempVal) && tempVal >= 38.0)) {
         redFlagBanner.classList.add('show');
@@ -685,71 +722,108 @@
 
     tempInput.addEventListener('input', evaluateRedFlags);
 
-    document.querySelectorAll('#locationChips .chip, #drynessChips .chip, #flagChips .chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        chip.classList.toggle('active');
-        evaluateRedFlags();
-      });
+    // 乾燥症固定多選標籤
+    document.querySelectorAll('#drynessChips .chip').forEach(chip => {
+      chip.addEventListener('click', () => chip.classList.toggle('active'));
     });
 
-    function renderMedChips(takenMeds = []) {
-      medListContainer.innerHTML = '';
-      medCatalog.forEach((medName, idx) => {
+    // === 通用「可自由新增／刪減膠囊群組」渲染器 ===
+    function renderEditableChipGroup({ containerId, catalog, storageKey, selectedItems, variantClass = '', onChange = null }) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      catalog.forEach((itemName, idx) => {
+        const isSelected = selectedItems.includes(itemName);
         const chip = document.createElement('div');
-        chip.className = 'med-chip' + (takenMeds.includes(medName) ? ' taken' : '');
-        chip.dataset.med = medName;
+        chip.className = `editable-chip ${variantClass} ${isSelected ? 'active' : ''}`.trim();
+        chip.dataset.val = itemName;
 
         const labelSpan = document.createElement('span');
-        labelSpan.textContent = (takenMeds.includes(medName) ? '✓ ' : '') + medName;
+        labelSpan.textContent = (isSelected ? '✓ ' : '') + itemName;
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
-        delBtn.className = 'med-del-btn';
-        delBtn.title = '刪除此藥物';
+        delBtn.className = 'chip-del-btn';
+        delBtn.title = '刪除此項目';
         delBtn.textContent = '✕';
         delBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          medCatalog.splice(idx, 1);
-          localStorage.setItem(STORAGE_KEY_MEDS, JSON.stringify(medCatalog));
-          const currentTaken = getSelectedMeds().filter(m => m !== medName);
-          renderMedChips(currentTaken);
+          catalog.splice(idx, 1);
+          localStorage.setItem(storageKey, JSON.stringify(catalog));
+          const updatedSelected = getActiveEditableValues(containerId).filter(v => v !== itemName);
+          renderEditableChipGroup({ containerId, catalog, storageKey, selectedItems: updatedSelected, variantClass, onChange });
+          if (onChange) onChange();
         });
 
         chip.addEventListener('click', () => {
-          const nowTaken = !chip.classList.contains('taken');
-          chip.classList.toggle('taken');
-          labelSpan.textContent = (nowTaken ? '✓ ' : '') + medName;
+          const nowActive = !chip.classList.contains('active');
+          chip.classList.toggle('active');
+          labelSpan.textContent = (nowActive ? '✓ ' : '') + itemName;
+          if (onChange) onChange();
         });
 
         chip.appendChild(labelSpan);
         chip.appendChild(delBtn);
-        medListContainer.appendChild(chip);
+        container.appendChild(chip);
       });
     }
 
-    function getSelectedMeds() {
-      return [...document.querySelectorAll('#medListContainer .med-chip.taken')].map(el => el.dataset.med);
+    function getActiveEditableValues(containerId) {
+      return [...document.querySelectorAll(`#${containerId} .editable-chip.active`)].map(el => el.dataset.val);
     }
 
-    function handleAddMed() {
-      const name = newMedInput.value.trim();
-      if (!name) return;
-      if (!medCatalog.includes(name)) {
-        medCatalog.push(name);
-        localStorage.setItem(STORAGE_KEY_MEDS, JSON.stringify(medCatalog));
-      }
-      const currentTaken = getSelectedMeds();
-      if (!currentTaken.includes(name)) currentTaken.push(name);
-      renderMedChips(currentTaken);
-      newMedInput.value = '';
+    function bindAddControl({ inputId, btnId, containerId, catalog, storageKey, variantClass = '', onChange = null }) {
+      const inputEl = document.getElementById(inputId);
+      const btnEl = document.getElementById(btnId);
+
+      const handleAdd = () => {
+        const name = inputEl.value.trim();
+        if (!name) return;
+        if (!catalog.includes(name)) {
+          catalog.push(name);
+          localStorage.setItem(storageKey, JSON.stringify(catalog));
+        }
+        const currentSelected = getActiveEditableValues(containerId);
+        if (!currentSelected.includes(name)) currentSelected.push(name);
+        renderEditableChipGroup({ containerId, catalog, storageKey, selectedItems: currentSelected, variantClass, onChange });
+        inputEl.value = '';
+        if (onChange) onChange();
+      };
+
+      btnEl.addEventListener('click', handleAdd);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleAdd();
+        }
+      });
     }
 
-    document.getElementById('addMedBtn').addEventListener('click', handleAddMed);
-    newMedInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleAddMed();
-      }
+    // 綁定「01. 疼痛部位」、「03. 紅旗警訊」、「04. 今日用藥」的新增控制
+    bindAddControl({
+      inputId: 'newLocationInput',
+      btnId: 'addLocationBtn',
+      containerId: 'locationChips',
+      catalog: locationCatalog,
+      storageKey: STORAGE_KEY_LOCATIONS
+    });
+
+    bindAddControl({
+      inputId: 'newFlagInput',
+      btnId: 'addFlagBtn',
+      containerId: 'flagChips',
+      catalog: flagCatalog,
+      storageKey: STORAGE_KEY_FLAGS,
+      variantClass: 'flag-variant',
+      onChange: evaluateRedFlags
+    });
+
+    bindAddControl({
+      inputId: 'newMedInput',
+      btnId: 'addMedBtn',
+      containerId: 'medListContainer',
+      catalog: medCatalog,
+      storageKey: STORAGE_KEY_MEDS
     });
 
     function loadRecordForDate(dateStr) {
@@ -773,20 +847,38 @@
       tempInput.value = rec.temp || '';
       notesInput.value = rec.notes || '';
 
-      document.querySelectorAll('#locationChips .chip').forEach(c => {
-        c.classList.toggle('active', (rec.locations || []).includes(c.dataset.val));
-      });
       document.querySelectorAll('#drynessChips .chip').forEach(c => {
         c.classList.toggle('active', (rec.dryness || []).includes(c.dataset.val));
       });
-      document.querySelectorAll('#flagChips .chip').forEach(c => {
-        c.classList.toggle('active', (rec.flags || []).includes(c.dataset.val));
+
+      // 確保跨裝置同步回來的自訂項目也加入本機清單
+      (rec.locations || []).forEach(v => { if (!locationCatalog.includes(v)) locationCatalog.push(v); });
+      (rec.flags || []).forEach(v => { if (!flagCatalog.includes(v)) flagCatalog.push(v); });
+      (rec.meds || []).forEach(v => { if (!medCatalog.includes(v)) medCatalog.push(v); });
+
+      renderEditableChipGroup({
+        containerId: 'locationChips',
+        catalog: locationCatalog,
+        storageKey: STORAGE_KEY_LOCATIONS,
+        selectedItems: rec.locations || []
       });
 
-      (rec.meds || []).forEach(m => {
-        if (!medCatalog.includes(m)) medCatalog.push(m);
+      renderEditableChipGroup({
+        containerId: 'flagChips',
+        catalog: flagCatalog,
+        storageKey: STORAGE_KEY_FLAGS,
+        selectedItems: rec.flags || [],
+        variantClass: 'flag-variant',
+        onChange: evaluateRedFlags
       });
-      renderMedChips(rec.meds || []);
+
+      renderEditableChipGroup({
+        containerId: 'medListContainer',
+        catalog: medCatalog,
+        storageKey: STORAGE_KEY_MEDS,
+        selectedItems: rec.meds || []
+      });
+
       evaluateRedFlags();
     }
 
@@ -799,18 +891,27 @@
       return {
         date: dateStr,
         pain: Number(painSlider.value),
-        locations: [...document.querySelectorAll('#locationChips .chip.active')].map(c => c.dataset.val),
+        locations: getActiveEditableValues('locationChips'),
         stiffness: stiffnessSelect.value,
         fatigue: Number(fatigueSelect.value),
         temp: tempInput.value.trim(),
         dryness: [...document.querySelectorAll('#drynessChips .chip.active')].map(c => c.dataset.val),
-        flags: [...document.querySelectorAll('#flagChips .chip.active')].map(c => c.dataset.val),
-        meds: getSelectedMeds(),
+        flags: getActiveEditableValues('flagChips'),
+        meds: getActiveEditableValues('medListContainer'),
         notes: notesInput.value.trim()
       };
     }
 
-    // === Google Sheet 自動同步狀態與讀寫 ===
+    // === Google Sheet 自動同步讀寫（含防快取與日期標準化） ===
+    function normalizeDateKey(rawKey) {
+      const clean = String(rawKey).trim().split('T')[0].replace(/\//g, '-');
+      const parts = clean.split('-');
+      if (parts.length === 3) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      }
+      return clean;
+    }
+
     function updateSyncIndicator(state, text) {
       const dot = document.getElementById('syncStatusDot');
       const label = document.getElementById('syncStatusText');
@@ -835,6 +936,7 @@
       try {
         const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
+          redirect: 'follow',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(recordData)
         });
@@ -858,17 +960,40 @@
       }
       updateSyncIndicator('syncing', '讀取試算表中...');
       try {
-        const response = await fetch(GAS_WEB_APP_URL);
+        const separator = GAS_WEB_APP_URL.includes('?') ? '&' : '?';
+        const response = await fetch(`${GAS_WEB_APP_URL}${separator}t=${Date.now()}`, {
+          method: 'GET',
+          redirect: 'follow'
+        });
         const result = await response.json();
         if (result.status === 'ok' && result.data) {
-          allRecords = { ...allRecords, ...result.data };
+          const normalizedRemote = {};
+          Object.entries(result.data).forEach(([k, val]) => {
+            const normKey = normalizeDateKey(k);
+            // 解析備註中可能夾帶的 [警訊: ...]
+            let parsedFlags = val.flags || [];
+            let cleanNotes = val.notes || '';
+            const flagMatch = cleanNotes.match(/^\[警訊:\s*([^\]]+)\]\s*(.*)$/);
+            if (flagMatch) {
+              parsedFlags = flagMatch[1].split('、').filter(Boolean);
+              cleanNotes = flagMatch[2];
+            }
+            normalizedRemote[normKey] = {
+              ...val,
+              date: normKey,
+              flags: parsedFlags,
+              notes: cleanNotes
+            };
+          });
+
+          allRecords = { ...allRecords, ...normalizedRemote };
           localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(allRecords));
           loadRecordForDate(dateInput.value);
           renderWeeklyView();
           renderDoctorSummary();
           const nowTime = new Date().toTimeString().slice(0, 5);
           updateSyncIndicator('connected', `已同步 (${nowTime})`);
-          return result.data;
+          return normalizedRemote;
         }
       } catch (err) {
         console.error('Google Sheet 讀取失敗:', err);
@@ -1018,7 +1143,7 @@
       });
     });
 
-    // === 開啟網頁自動執行 ===
+    // === 開啟網頁自動初始化 ===
     loadRecordForDate(dateInput.value);
     fetchRecordsFromGoogleSheet();
   </script>
